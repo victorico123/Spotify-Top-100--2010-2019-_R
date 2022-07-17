@@ -21,15 +21,14 @@ Spotify is the most well-known music streaming app in the world, users can acces
 Spotify is free, but for more convenient features the user can subscribe to Spotify Premium which the minimum cost around $10 per month. The features that the user can get as the premium user is the ability to disable ads and also unlimited songs skip. For this project, we are going to use Spotify daa to do some analysis.
 
 ### 2.2 Problems need to be solved
-Spotify offer a dataset of all daily hit charts curated by Spotify that is published on Kaggle website ( https://kaggle.com ). The data will contain top 100 song from 2010 until 2019 with xslx data format and total 1000 total record for the past ten years. This dataset is still unprocessed and there is more room to do more exploratory and predictive data analysis.
+Spotify offer a dataset of all daily hit charts curated by Spotify that is published on Kaggle website ( [Visit Website](https://kaggle.com) ). The data will contain top 100 song from 2010 until 2019 with xslx data format and total 1000 total record for the past ten years. This dataset is still unprocessed and there is more room to do more exploratory and predictive data analysis.
 
 
 ### 2.3  Data analysis specifications
 The objective of this system is to read the data in analysis manner with this functionality:
 
-* Get top popular song for each year
-* Get top popular song genre for each year
-* Get top popular artist for each year
+* Get top popular song genre for every 5 year
+* Get top popular artist for every 5 year
 * Get average duration each year
 * Get artist which appeared on the charts maximum number of times
 * Predict top genre next year
@@ -41,26 +40,39 @@ The project will be revolving around descriptive and predictive analysis on Spot
 ### 3.1 Data acquiring
 
 ```{r}
-df<-read.csv(file = "Spotify 2010 - 2019 Top 100.csv",header = TRUE, sep=",")
+df<-read.csv(file = "Spotify_2010_-_2019_Top_100.csv",header = TRUE, sep=",")
 head(df,5)
 sapply(df,class)
 ```
 ### 3.2 Data Cleaning
 Remove NAN value
 ```{r}
-df<-read.csv(file = "Spotify 2010 - 2019 Top 100.csv",header = TRUE, sep=",")
-head(df,5)
+df<−na.omit(df)
 ```
 
 ### 3.3 Data Transformation
 
+```{r}
+encode_ordinal <- function(x, order = unique(x)) {
+  x <- as.numeric(factor(x, levels = order, exclude = NULL))
+  x
+}
+
+new.col<-encode_ordinal(df[["artist.type"]])
+df$artist.type.enc<-new.col
+head(df)
+```
+
 ### 3.4 Dataset for analysis
+Dataset we use will be all of the dataset given by the kaggle that has been cleaned. Below is the data preview
 
+```{r}
+head(df)
+```
 
-
-
-
-
+```{r}
+sapply(df, class)
+```
 
 
 
