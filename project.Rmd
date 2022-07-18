@@ -58,8 +58,8 @@ nrow(df)
 ```
 #### Changing Date Release datatype
 ```{r}
-df$added <- as.Date(df$added, "%d/%m/%Y")
-df$added <- as.POSIXct(df$added)
+df$added<-gsub("[[:punct:]]", "", df$added)
+df$added <- as.Date(df[["added"]], "%Y%m%d")
 sapply(df,class)
 ```
 
