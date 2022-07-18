@@ -47,7 +47,7 @@ sapply(df,class)
 ### 3.2 Data Cleaning
 Remove NAN value
 ```{r}
-df<−na.omit(df)
+df <- na.omit(df)
 ```
 
 ### 3.3 Data Transformation
@@ -74,7 +74,14 @@ head(df)
 sapply(df, class)
 ```
 
+## 4. DATA PREPARATION
+### 4.1 Data Model
 
+```{r}
+df1 <- df[ which( df$top.year == 2010 | df$top.year == 2011 | df$top.year == 2012 | df$top.year == 2013 | df$top.year == 2014),]
+ 
+df2 <- df[ which( df$top.year == 2015 | df$top.year == 2016 | df$top.year == 2017 | df$top.year == 2018 | df$top.year == 2019),]
+```
 
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
