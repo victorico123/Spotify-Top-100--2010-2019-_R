@@ -57,7 +57,11 @@ df <- na.omit(df)
 nrow(df)
 ```
 #### Changing Date Release datatype
-
+```{r}
+df$added <- as.Date(df$added, "%d/%m/%Y")
+df$added <- as.POSIXct(df$added)
+sapply(df,class)
+```
 
 ### 3.3 Data Transformation
 #### simplify
