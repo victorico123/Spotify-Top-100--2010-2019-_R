@@ -528,7 +528,7 @@ ggplot(data = popular.artist.second, aes(x = artist, y = n)) +
 ```
 
 #### 5.3 Get song that was released outside the chart year range 
-
+To make it look simple, we will just show several column
 ```{r}
 df.song.released.outside.subset<-df.song.released.outside[,1:4]
 df.song.released.outside.subset$top.year<-df.song.released.outside$top.year
