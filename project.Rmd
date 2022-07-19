@@ -29,7 +29,7 @@ The objective of this system is to read the data in analysis manner with this fu
 
 * Get top popular song genre for every 5 year
 * Get top popular artist for every 5 year
-* Get average duration each year
+* Get song that was released outside the chart year range
 * Get artist which appeared on the charts maximum number of times
 * Create top genre model and get the best K for the prediction (predict using KNN)
 
@@ -40,6 +40,7 @@ The project will be revolving around descriptive and predictive analysis on Spot
 We will create a data preparation for prediction and exploratory purposes.
 ### 3.1 Data acquiring
 We will read the data from kaggle that has been given in csv format using read.csv
+
 ```{r}
 df<-read.csv(file = "Spotify_2010_-_2019_Top_100.csv",header = TRUE, sep=",")
 head(df,5)
@@ -52,13 +53,17 @@ check if there is NA value inside the dataframe.
 ```{r}
 nrow(which(is.na(df), arr.ind=TRUE))
 ```
+
 There are 36 position that is filled with NA value now we can remove those na value.
+
 ```{r}
 df <- na.omit(df)
 nrow(df)
 ```
+
 #### Changing Date Release datatype
 The date format use ascii value as the hypen. We need to process it by removing a non alpha numeric using gsub function and reformat it using as.Date() function. below we will show the class of date release.
+
 ```{r}
 df$added<-gsub("[[:punct:]]", "", df$added)
 df$added <- as.Date(df[["added"]], "%Y%m%d")
@@ -68,10 +73,13 @@ class(df$added)
 ### 3.3 Data Transformation
 #### simplify
 Since we will do some prediction on genre it is better to classified the genre into a more simple one
+
 ```{r}
 length(unique(df$top.genre))
 ```
+
 as we can see there are hundreds of genre so we will classified it into 17 major genre. Here is our dictionary and implementation
+
 ```{r}
 genre_dict <- c(
   "dance pop","pop", 
@@ -216,25 +224,29 @@ length(unique(df$top.genre))
 
 #### Ordinal Encoder
 Now, we will do an ordinal encoder to the variable that will be required to do calculation. This transformation will change the character data type that act as a category to number data type. Here is the function to do the encoding.
+
 ```{r}
 encode_ordinal <- function(x, order = unique(x)) {
   x <- as.numeric(factor(x, levels = order, exclude = NULL))
   x
 }
 ```
+
 Now we can choose the data that will be encoded. In this case we will encode artist type, 
+
 ```{r}
 new.col.artist.type<-encode_ordinal(df[["artist.type"]])
 df$artist.type.enc<-new.col.artist.type
 head(df)
 ```
+
 We will also do the encoder on genre
+
 ```{r}
 new.col.top.genre<-encode_ordinal(df[["top.genre"]])
 df$top.genre.enc<-new.col.top.genre
 head(df)
 ```
-
 
 #### prediction data
 #### normalization
@@ -250,22 +262,28 @@ normalize <- function(x) {
 ```
 
 Now, lets assign the data to a new subset. We dont need to assign the genre to the new subset yet. since we do not want to normalize the target of our prediction.
+
 ```{r}
 df.subset <- df[,6:15]
 df.subset$artist.type.enc <- new.col.artist.type
 ```
+
 After that we can apply the normalization, and add genre to the normalized subset
+
 ```{r}
 df.subset <- as.data.frame(lapply(df.subset, normalize))
 df.subset$top.genre.enc <- new.col.top.genre
 head(df.subset)
 ```
+
 We can see that now everything has been normalized except the genre.
 #### Remove duplicate data
-@e can now removing the duplicate data since duplicate data can effect the result into an over-fitting model.
+We can now removing the duplicate data since duplicate data can effect the result into an over-fitting model.
+
 ```{r}
 df.subset <- unique(df.subset)
 ```
+
 ### 3.4 Dataset for analysis
 Dataset we use will be all of the dataset given by the kaggle that has been cleaned. We will copy the data into new dataframe variable to keep the original dataframe. We will also show the preview with each of the class attribute
 
@@ -276,18 +294,20 @@ sapply(df.song, class)
 ```
 
 Data for prediction
+
 ```{r}
 df.subset.song<-df.subset
 head(df.song)
 sapply(df.song, class)
 ```
+
 ## 4. DATA Analysis
 ### 4.1 Data Model
 #### 4.1.1 Exploratory data
 We will need 3 types of model data. Which is the original data, first five year data and last five year data. This model will be use for exploratory data analysis.
 ```{r}
-df.song.first <- df.song[ which( df$top.year >= 2010 & df.song$top.year <= 2014),]
-df.song.second <- df.song[ which( df$top.year >= 2015 & df.song$top.year <= 2019),]
+df.song.first <- df.song[ which( df.song$top.year >= 2010 & df.song$top.year <= 2014),]
+df.song.second <- df.song[ which( df.song$top.year >= 2015 & df.song$top.year <= 2019),]
 
 unique(df.song.first$top.year)
 unique(df.song.second$top.year)
@@ -309,35 +329,139 @@ test_labels <-df.subset.song[-dat.d,12]
 ```
 
 ### 4.2 Data Analysis Method
+Install needed library
+
+```{r}
+#install.packages('tidyverse')
+library(tidyverse)
+```
+
 #### 4.2.1 Get top popular song genre for every 5 year
+we can do this by extracting the most occurrances in the genre column for every 5 year
+#### First Five year
+
+```{r}
+popular.genre.first <- df.song.first %>% 
+  group_by(top.genre) %>% 
+  tally(sort = TRUE) %>% 
+  filter(row_number() <= 10)
+```
+
+#### Second Five year
+
+```{r}
+popular.genre.second <- df.song.second %>% 
+  group_by(top.genre) %>% 
+  tally(sort = TRUE) %>% 
+  filter(row_number() <= 10)
+```
+
 #### 4.2.2 Get top popular artist for every 5 year
-#### 4.2.3 Get average duration each 
+we can do this by extracting the most occurrances in the artist column for every 5 year
+
+#### First Five year
+
+```{r}
+popular.artist.first <- df.song.first %>% 
+  group_by(artist) %>% 
+  tally(sort = TRUE) %>% 
+  filter(row_number() <= 10)
+```
+
+#### Second Five year
+
+```{r}
+popular.artist.second <- df.song.second %>% 
+  group_by(artist) %>% 
+  tally(sort = TRUE) %>% 
+  filter(row_number() <= 10)
+```
+
+#### 4.2.3 Get song that was released outside the chart year range 
+We can do this by subset the song dataframe into list of song that is released before 2010
+
+```{r}
+df.song.released.outside <- df.song[ which( df.song$year.released < 2010),]
+```
+
 #### 4.2.4 Get artist which appeared on the charts maximum number of times
+
+```{r}
+popular.artist <- df.song %>% 
+  group_by(artist) %>% 
+  tally(sort = TRUE) %>% 
+  filter(row_number() <= 10)
+```
+
 #### 4.2.5 Create top genre model and get the best K for the prediction (predict using KNN)
 Since we’re using the KNN algorithm to build the model, we must first install the ‘class’ package provided by R. This package has the KNN function in it:
+
 ```{r}
 #Install class package
 #install.packages('class')
 # Load class package
 library(class)
 ```
+
 Now we can get the number of training to roughly determine what is the best K value to be use as our model. One of the ways to find the optimal K value is to calculate the square root of the total number of training data in the data set.
+
 ```{r}
 NROW(train_labels) 
 ```
+
 The square root of 700 is around 26.04, therefore we’ll create three models. One with ‘K’ value as 26 and the other model with a ‘K’ value as 27 also 25.
+
 ```{r}
 knn.25 <- knn(train=train, test=test, cl=train_labels, k=25)
 knn.26 <- knn(train=train, test=test, cl=train_labels, k=26)
 knn.27 <- knn(train=train, test=test, cl=train_labels, k=27)
 ```
+
 ### 4.3 Data Analysis Result
 #### 4.3.1 Get top popular song genre for every 5 year
+#### First Five year
+
+```{r}
+popular.genre.first
+sprintf("The best genre is %s",popular.genre.first[[1]][1])
+```
+
+#### Second Five year
+
+```{r}
+popular.genre.second
+sprintf("The best genre is %s",popular.genre.second[[1]][1])
+```
+
 #### 4.3.2 Get top popular artist for every 5 year
-#### 4.3.3 Get average duration each 
+#### First Five year
+
+```{r}
+popular.artist.first
+sprintf("The best artist is %s",popular.artist.first[[1]][1])
+```
+
+#### Second Five year
+
+```{r}
+popular.artist.second
+sprintf("The best artist is %s",popular.artist.second[[1]][1])
+```
+
+#### 4.3.3 Get song that was released outside the chart year range 
+
+```{r}
+head(df.song.released.outside)
+```
+
 #### 4.3.4 Get artist which appeared on the charts maximum number of times
+```{r}
+popular.artist
+sprintf("The best artist is %s",popular.artist[[1]][1])
+```
 #### 4.3.5 Create top genre model and get the best K for the prediction (predict using KNN)
 Now we can calculate the proportion of correct classification for k = 26, 27 after building the model according those K value.
+
 ```{r}
 ACC.25 <- 100 * sum(test_labels == knn.25)/NROW(test_labels)
 ACC.26 <- 100 * sum(test_labels == knn.26)/NROW(test_labels)
@@ -346,7 +470,9 @@ sprintf("Accuracy for K-Value 25 : %f",ACC.25)
 sprintf("Accuracy for K-Value 26 : %f",ACC.26)
 sprintf("Accuracy for K-Value 27 : %f",ACC.27)
 ```
+
 We can also get the best k-value for this prediction by using a function that check all of the optimal k by looping until the number of k-value that we desire. In this case let us loop it until k-value 30
+
 ```{r}
 i=1
 k.optm=1
@@ -357,15 +483,73 @@ for (i in 1:30){
   cat(k,'=',k.optm[i],'\n')
 }
 ```
+
 ## 5. Data Visualization
+Install needed library
+
+```{r}
+#install.packages('ggplot2')
+library(ggplot2)
+library(knitr)
+```
+
 #### 5.1 Get top popular song genre for every 5 year
+#### First Five year
+
+```{r}
+ggplot(data = popular.genre.first, aes(x = top.genre, y = n)) +
+  geom_col() +
+  facet_grid(.~top.genre, scales = "free_x")
+```
+
+#### Second Five year
+
+```{r}
+ggplot(data = popular.genre.second, aes(x = top.genre, y = n)) +
+  geom_col() +
+  facet_grid(.~top.genre, scales = "free_x")
+```
+
 #### 5.2 Get top popular artist for every 5 year
-#### 5.3 Get average duration each 
+#### First Five year
+
+```{r}
+ggplot(data = popular.artist.first, aes(x = artist, y = n)) +
+  geom_col() +
+  facet_grid(.~artist, scales = "free_x")
+```
+
+#### Second Five year
+
+```{r}
+ggplot(data = popular.artist.second, aes(x = artist, y = n)) +
+  geom_col() +
+  facet_grid(.~artist, scales = "free_x")
+```
+
+#### 5.3 Get song that was released outside the chart year range 
+
+```{r}
+df.song.released.outside.subset<-df.song.released.outside[,1:4]
+df.song.released.outside.subset$top.year<-df.song.released.outside$top.year
+df.song.released.outside.subset$artist.type<-df.song.released.outside$artist.type
+row.names(df.song.released.outside.subset)<-1:nrow(df.song.released.outside.subset)
+kable(df.song.released.outside.subset, caption = "Song that was released outside the chart year range ")
+```
+
 #### 5.4 Get artist which appeared on the charts maximum number of times
+
+```{r}
+ggplot(data = popular.artist, aes(x = artist, y = n)) +
+  geom_col() +
+  facet_grid(.~artist, scales = "free_x")
+```
+
 #### 5.5 Create top genre model and get the best K for the prediction (predict using KNN)
 We can plot the best K-value for the genre prediction
+ 
 ```{r}
-plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
+plot(k.optm, type="b", xlab="K-Value",ylab="Accuracy level")
 ```
 
 

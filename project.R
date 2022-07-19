@@ -6,7 +6,7 @@ encode_ordinal <- function(x, order = unique(x)) {
   x
 }
 
-new.col1<-encode_ordinal(df[["artist.type"]])
+df.subset$artist.type.enc <- new.col1
 
 genre_dict <- c(
   "dance pop","pop", 
@@ -211,3 +211,22 @@ for (i in 1:28){
 }
 
 plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
+
+
+
+
+install.packages('tidyverse')
+
+
+library(tidyverse)
+library(ggplot2)
+df <- df[ which( df$top.year >= 2010 & df$top.year <= 2014),]
+df$ï..title
+df <- df %>% 
+  group_by(top.genre) %>% 
+  tally(sort = TRUE) %>% 
+  filter(row_number() <= 5)
+df[[1]][1]
+ggplot(data = df, aes(x = top.genre, y = n)) +
+  geom_col() +
+  facet_grid(.~top.genre, scales = "free_x")
