@@ -1,42 +1,12 @@
 df<-read.csv(file = "Spotify_2010_-_2019_Top_100.csv",header = TRUE, sep=",")
-View(df)
-
-typeof(df)
-
-
-colnames(df)
-
-sapply(df,class)
-
+df <- na.omit(df)
 
 encode_ordinal <- function(x, order = unique(x)) {
   x <- as.numeric(factor(x, levels = order, exclude = NULL))
   x
 }
 
-new.col<-encode_ordinal(df[["artist.type"]])
-df$artist.type.enc<-new.col
-df
-
-
-
-gsub("\\?+","'",iconv(df$added, "latin1", "ASCII", sub=" "))
-gsub("  ","-",df$added)
-df$added<-as.POSIXct(df$added)
-df$ï..title
-nrow(df)
-apply(df,2, function(x) is.na(x))
-is.null(df)
-df <- na.omit(df)
-rename(df, title = ï..title)
-library(dplyr)
-df = select(df,Science_score,Mathematics_score,Name)
-
-sapply(df, class)
-
-temp<-which(is.na(df), arr.ind=TRUE)
-temp[1,0]
-unique(temp)
+new.col1<-encode_ordinal(df[["artist.type"]])
 
 genre_dict <- c(
   "dance pop","pop", 
@@ -172,9 +142,72 @@ val = 0
 while (val <= 258)
 {
   tempval <- val
-  print(tempval)
   df["top.genre"][df["top.genre"] == genre_dict[tempval+1]] <-  as.character(genre_dict[tempval+2])
   val = val + 2
 }
+new.col2<-encode_ordinal(df[["top.genre"]])
 
-length(unique(df$top.genre))
+#normalize
+normalize <- function(x) {
+  return ((x - min(x)) / (max(x) - min(x))) }
+
+df.subset <- as.data.frame(lapply(df[,6:15], normalize))
+df.subset <- df[,6:15]
+df.subset$artist.type.enc <- new.col1
+df.subset$top.genre.enc <- new.col2
+df.subset <- as.data.frame(lapply(df.subset, normalize))
+colnames(df.subset)
+df.subset
+#splicing
+set.seed(123)
+dat.d <- sample(1:nrow(df.subset),size=nrow(df.subset)*0.7,replace = FALSE) #random selection of 70% data.
+
+train <- df.subset[dat.d,] # 70% training data
+test <- df.subset[-dat.d,] # remaining 30% test data
+
+#Creating seperate dataframe for 'Creditability' feature which is our target.
+train_labels <- df.subset[dat.d,12]
+test_labels <-df.subset[-dat.d,12]
+
+#Install class package
+install.packages('class')
+# Load class package
+library(class)
+NROW(train_labels) 
+
+#The square root of 700 is around 26.45, therefore we’ll create two models. One with ‘K’ value as 26 and the other model with a ‘K’ value as 27.
+knn.26 <- knn(train=train, test=test, cl=train_labels, k=26)
+knn.27 <- knn(train=train, test=test, cl=train_labels, k=27)
+knn.9 <- knn(train=train, test=test, cl=train_labels, k=9)
+
+#Calculate the proportion of correct classification for k = 26, 27
+ACC.26 <- 100 * sum(test_labels == knn.26)/NROW(test_labels)
+ACC.27 <- 100 * sum(test_labels == knn.27)/NROW(test_labels)
+ACC.9 <- 100 * sum(test_labels == knn.9)/NROW(test_labels)
+ACC.26
+ACC.27
+ACC.9
+
+#You can also use the confusion matrix to calculate the accuracy. 
+install.packages('caret')
+install.packages('lattice')
+install.packages('ggplot2')
+install.packages('InformationValue')
+install.packages('ISLR')
+library(caret)
+library(lattice)
+library(ggplot2)
+library(InformationValue)
+library(ISLR)
+confusionMatrix(table(knn.26 ,test_labels))
+
+i=1
+k.optm=1
+for (i in 1:28){
+  knn.mod <- knn(train=train, test=test, cl=train_labels, k=i)
+  k.optm[i] <- 100 * sum(test_labels == knn.mod)/NROW(test_labels)
+  k=i
+  cat(k,'=',k.optm[i],'')
+}
+
+plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
