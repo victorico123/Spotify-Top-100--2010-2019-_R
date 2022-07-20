@@ -417,6 +417,19 @@ knn.26 <- knn(train=train, test=test, cl=train_labels, k=26)
 knn.27 <- knn(train=train, test=test, cl=train_labels, k=27)
 ```
 
+#### 4.2.6 See the trend of BPM, Energy, Danceability, live, val, acous, spch, and pop from 2010 to 2019
+```{r}
+bpm_mean<-aggregate(df.song$bpm, list(df$top.year), FUN=mean)
+nrgy_mean<-aggregate(df.song$nrgy, list(df$top.year), FUN=mean)
+dnce_mean<-aggregate(df.song$dnce, list(df$top.year), FUN=mean)
+live_mean<-aggregate(df.song$live, list(df$top.year), FUN=mean)
+val_mean<-aggregate(df.song$val, list(df$top.year), FUN=mean)
+acous_mean<-aggregate(df.song$acous, list(df$top.year), FUN=mean)
+spch_mean<-aggregate(df.song$spch, list(df$top.year), FUN=mean)
+pop_mean<-aggregate(df.song$pop, list(df$top.year), FUN=mean)
+```
+
+
 ### 4.3 Data Analysis Result
 #### 4.3.1 Get top popular song genre for every 5 year
 #### First Five year
@@ -483,12 +496,74 @@ for (i in 1:30){
   cat(k,'=',k.optm[i],'\n')
 }
 ```
+#### 4.3.6 See the trend of BPM, Energy, Danceability, live, val, acous, spch, and pop from 2010 to 2019
+```{r}
+bpm<-bpm_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='blue')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='BPM Average per Year', y='BPM', x='Year')
+nrgy<-nrgy_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='green')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='nrgy Average per Year', y='nrgy', x='Year')
+dnce<-dnce_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='red')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='dnce Average per Year', y='dnce', x='Year')
+live<-live_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='magenta')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='live Average per Year', y='live', x='Year')
+val<-val_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='orange')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='val Average per Year', y='val', x='Year')
+acous<-acous_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='purple')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='acous Average per Year', y='acous', x='Year')
+spch<-spch_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='brown')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='spch Average per Year', y='spch', x='Year')
+pop<-pop_mean%>%
+  ggplot(aes((`Group.1`), x))+
+  geom_point(color='black')+
+  geom_line(group=1, color='navy')+
+  theme_bw()+
+  scale_x_continuous(breaks = seq(2010,2019,2))+
+  labs(title='pop Average per Year', y='pop', x='Year')
+
+```
 
 ## 5. Data Visualization
 Install needed library
 
 ```{r}
 #install.packages('ggplot2')
+#install.packages('gridExtra')
+library(gridExtra)
 library(ggplot2)
 library(knitr)
 ```
@@ -552,6 +627,14 @@ We can plot the best K-value for the genre prediction
 plot(k.optm, type="b", xlab="K-Value",ylab="Accuracy level")
 ```
 
+#### 5.6 See the trend of BPM, Energy, Danceability, live, val, acous, spch, and pop from 2010 to 2019
+```{r}
+grid.arrange(bpm, nrgy, dnce, live, ncol=2, nrow =2)
+```
+
+```{r}
+grid.arrange(val, acous, spch, pop, ncol=2, nrow =2)
+```
 
 ## 6. Conclustion
 
